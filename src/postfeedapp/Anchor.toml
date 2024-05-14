@@ -1,0 +1,14 @@
+[features]
+seeds = false
+[programs.devnet]
+postfeedapp = "3EHpH1yZZR6HhDio9VVGSuB4n2bbVm35gTbxBPEUtYwB"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "devnet"
+wallet = "./id.json"
+
+[scripts]
+test = "yarn run mocha -t 1000000 tests/"
