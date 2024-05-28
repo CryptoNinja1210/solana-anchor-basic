@@ -5,7 +5,7 @@ import {useEffect, useState} from 'react'
 import * as anchor from "@project-serum/anchor";
 import {Buffer} from 'buffer';
 import idl from './postfeedapp/target/idl/postfeedapp.json' //get the smartcontract data structure model from target folder in anchor rust
-import { Connection, PublicKey, clusterApiUrl  } from '@solana/web3.js';
+import { Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Program, AnchorProvider, web3, utils } from '@project-serum/anchor';
 import { FeedPostDesign } from './feedPostDesign';
 
@@ -47,7 +47,12 @@ const App = () => {
           const response = await solana.connect({
             onlyIfTrusted: true, //second time if anyone connected it won't show anypop on screen
           });
-          setWalletAddress(response.publicKey.toString());
+          console.log('Solana', solana)
+          console.log('Solana connect', response.publicKey.toString())
+          const walletPublicKey = response.publicKey.toString()
+          const balance = await connection.getBalance(new PublicKey(walletPublicKey))
+          console.log('Balance', balance, balance / LAMPORTS_PER_SOL)
+          setWalletAddress(walletPublicKey);
         }
       } else {
         alert("Solana object not found!, Get a Phantom Wallet");
@@ -70,11 +75,17 @@ const App = () => {
   };
 
   const connectWalletRenderPopup = async () => { //first time users are connecting to wallet this function will activate
+    console.log(solana)
     try{
       setLoading(true)
       if (solana) {
         const response = await solana.connect();
-        setWalletAddress(response.publicKey.toString());
+        console.log('Solana connect', response.publicKey.toString())
+        const walletPublicKey = response.publicKey.toString()
+        console.log(new PublicKey(walletPublicKey).toBase58())
+        const balance = await connection.getBalance(new PublicKey(walletPublicKey))
+        console.log('Balance', balance, balance / LAMPORTS_PER_SOL)
+        setWalletAddress(walletPublicKey);
       }
     }catch(err){
       console.log(err)
@@ -85,7 +96,7 @@ const App = () => {
 
   const connect = () => {
     return (
-      <button onClick={connectWalletRenderPopup} className="buttonStyle"> {Loading ? <p>loading...</p>: <p>Connect Your Wallet To Post </p>}    </button>
+      <button onClick={connectWalletRenderPopup} className="buttonStyle"> {Loading ? <p>loading...</p>: <p>Connect Your Wallet To Post </p>}</button>
     );
   };
 
@@ -93,6 +104,7 @@ const App = () => {
     const provider = getProvider() //checks & verify the dapp it can able to connect solana network
     const program = new Program(idl,programID,provider) //program will communicate to solana network via rpc using lib.json as model
     const num = new anchor.BN(position); //to pass number into the smartcontract need to convert into binary
+    console.log('Create', program, num, programID)
     try{
       //post request will verify the lib.json and using metadata address it will verify the programID and create the block in solana
       const tx = await program.rpc.createPost(text,hastag,num,false,{ 
@@ -105,6 +117,7 @@ const App = () => {
       })
       //const account_data  = await program.account.feedPostApp.fetch(feedPostApp.publicKey)
       //console.log('user_data',user_data,'tx',tx,'feedpostapp',feedPostApp.publicKey.toString(),'user',provider.wallet.publicKey.toString(),'systemProgram',SystemProgram.programId.toString())
+      console.log(tx)
       onLoad();
     }catch(err){
       console.log(err)
@@ -114,6 +127,7 @@ const App = () => {
   const getPosts = async() =>{
     const provider = getProvider();
     const program = new Program(idl,programID,provider)
+    console.log('post',idl,programID,provider, program)
     try{
       setLoading(true)
       Promise.all(

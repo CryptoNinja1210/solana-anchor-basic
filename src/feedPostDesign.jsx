@@ -8,7 +8,8 @@ export const FeedPostDesign = ({posts,createPostFunction,walletaddress,connect,L
     const [limit, setLimit] = useState(10)
 
     async function submit(){ //calling post request
-      if(postText && hastagText && posts.length)
+      console.log('submit', postText, hastagText, posts)
+      if(postText && hastagText && !posts.length)
       {
         await createPostFunction(postText,hastagText,posts.length)
         setHastagText('') //once post request is done, making the user inputs data clear
